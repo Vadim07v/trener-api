@@ -1,5 +1,6 @@
 package com.example.trener_api.controller
 
+import com.example.trener_api.dto.*
 import com.example.trener_api.exception.NotFoundException
 import com.example.trener_api.model.WorkoutSession
 import com.example.trener_api.repository.WorkoutSessionRepository
@@ -12,43 +13,46 @@ import org.springframework.web.bind.annotation.*
 class WorkoutSessionController(
     private val repository: WorkoutSessionRepository
 ) {
-    // Вспомогательная функция: найти или выбросить 404
     private fun findOr404(id: Long): WorkoutSession =
         repository.findById(id).orElseThrow { NotFoundException("Тренировка $id не найдена") }
 
-    // GET /api/sessions — все тренировки
+    // GET /api/sessions — все тренировки, новые сверху
     @GetMapping
-    fun getAll(): List<WorkoutSession> =
-        repository.findAllByOrderByWorkoutDateDesc()
+    fun getAll(): List<SessionResponse> =
+        repository.findAllByOrderByWorkoutDateDesc().map { it.toResponse() }
 
     // GET /api/sessions/2 — одна тренировка
     @GetMapping("/{id}")
-    fun getOne(@PathVariable id: Long): WorkoutSession = findOr404(id)
+    fun getOne(@PathVariable id: Long): SessionResponse =
+        findOr404(id).toResponse()
 
     // POST /api/sessions — создать
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@Valid @RequestBody session: WorkoutSession): WorkoutSession {
-        session.sets.forEach { it.session = session }
-        return repository.save(session)
+    fun create(@Valid @RequestBody req: SessionRequest): SessionResponse {
+        val session = WorkoutSession(
+            workoutDate = req.workoutDate,
+            dayName = req.dayName,
+            feel = req.feel,
+            bodyWeight = req.bodyWeight,
+            note = req.note,
+        )
+        req.sets.forEach { session.sets.add(it.toEntity(session)) }
+        return repository.saveAndFlush(session).toResponse()
     }
 
     // PUT /api/sessions/2 — заменить тренировку целиком (вместе с подходами)
     @PutMapping("/{id}")
-    fun update(@PathVariable id: Long, @Valid @RequestBody body: WorkoutSession): WorkoutSession {
+    fun update(@PathVariable id: Long, @Valid @RequestBody req: SessionRequest): SessionResponse {
         val session = findOr404(id)
-        session.workoutDate = body.workoutDate
-        session.dayName = body.dayName
-        session.feel = body.feel
-        session.bodyWeight = body.bodyWeight
-        session.note = body.note
-        session.sets.clear()                 // старые подходы удалятся (orphanRemoval)
-        body.sets.forEach {
-            it.id = null                     // подходы записываем заново
-            it.session = session
-            session.sets.add(it)
-        }
-        return repository.save(session)
+        session.workoutDate = req.workoutDate
+        session.dayName = req.dayName
+        session.feel = req.feel
+        session.bodyWeight = req.bodyWeight
+        session.note = req.note
+        session.sets.clear()
+        req.sets.forEach { session.sets.add(it.toEntity(session)) }
+        return repository.saveAndFlush(session).toResponse()
     }
 
     // DELETE /api/sessions/2 — удалить (вместе с подходами)
