@@ -12,7 +12,7 @@
     <artifactId>trener-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>trener-api</name>
-    <description>Spring Boot project</description>
+    <description>REST API дневника тренировок: Kotlin, Spring Boot, PostgreSQL</description>
     <url/>
     <licenses>
         <license/>
@@ -29,6 +29,7 @@
     <properties>
         <java.version>25</java.version>
         <kotlin.version>2.3.21</kotlin.version>
+        <springdoc.version>3.1.1</springdoc.version>
     </properties>
     <dependencies>
         <dependency>
@@ -78,6 +79,12 @@
         <dependency>
             <groupId>tools.jackson.module</groupId>
             <artifactId>jackson-module-kotlin</artifactId>
+        </dependency>
+        <!-- Swagger: документация API в браузере -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
     </dependencies>
 
