@@ -1,64 +1,33 @@
 package com.example.trener_api.controller
 
-import com.example.trener_api.dto.*
-import com.example.trener_api.exception.NotFoundException
-import com.example.trener_api.model.WorkoutSession
-import com.example.trener_api.repository.WorkoutSessionRepository
+import com.example.trener_api.dto.SessionRequest
+import com.example.trener_api.dto.SessionResponse
+import com.example.trener_api.service.WorkoutService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
+// Контроллер стал «тонким»: адреса, проверка входных данных и вызов сервиса.
 @RestController
 @RequestMapping("/api/sessions")
 class WorkoutSessionController(
-    private val repository: WorkoutSessionRepository
+    private val service: WorkoutService
 ) {
-    private fun findOr404(id: Long): WorkoutSession =
-        repository.findById(id).orElseThrow { NotFoundException("Тренировка $id не найдена") }
-
-    // GET /api/sessions — все тренировки, новые сверху
     @GetMapping
-    fun getAll(): List<SessionResponse> =
-        repository.findAllByOrderByWorkoutDateDesc().map { it.toResponse() }
+    fun getAll(): List<SessionResponse> = service.getAll()
 
-    // GET /api/sessions/2 — одна тренировка
     @GetMapping("/{id}")
-    fun getOne(@PathVariable id: Long): SessionResponse =
-        findOr404(id).toResponse()
+    fun getOne(@PathVariable id: Long): SessionResponse = service.getOne(id)
 
-    // POST /api/sessions — создать
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@Valid @RequestBody req: SessionRequest): SessionResponse {
-        val session = WorkoutSession(
-            workoutDate = req.workoutDate,
-            dayName = req.dayName,
-            feel = req.feel,
-            bodyWeight = req.bodyWeight,
-            note = req.note,
-        )
-        req.sets.forEach { session.sets.add(it.toEntity(session)) }
-        return repository.saveAndFlush(session).toResponse()
-    }
+    fun create(@Valid @RequestBody req: SessionRequest): SessionResponse = service.create(req)
 
-    // PUT /api/sessions/2 — заменить тренировку целиком (вместе с подходами)
     @PutMapping("/{id}")
-    fun update(@PathVariable id: Long, @Valid @RequestBody req: SessionRequest): SessionResponse {
-        val session = findOr404(id)
-        session.workoutDate = req.workoutDate
-        session.dayName = req.dayName
-        session.feel = req.feel
-        session.bodyWeight = req.bodyWeight
-        session.note = req.note
-        session.sets.clear()
-        req.sets.forEach { session.sets.add(it.toEntity(session)) }
-        return repository.saveAndFlush(session).toResponse()
-    }
+    fun update(@PathVariable id: Long, @Valid @RequestBody req: SessionRequest): SessionResponse =
+        service.update(id, req)
 
-    // DELETE /api/sessions/2 — удалить (вместе с подходами)
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable id: Long) {
-        repository.delete(findOr404(id))
-    }
+    fun delete(@PathVariable id: Long) = service.delete(id)
 }
