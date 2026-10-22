@@ -97,6 +97,16 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Flyway: изменения базы — SQL-файлами из src/main/resources/db/migration -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <!-- Поддержка PostgreSQL для Flyway -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
         <!-- Тесты: база H2 в памяти, живёт только во время теста -->
         <dependency>
             <groupId>com.h2database</groupId>
