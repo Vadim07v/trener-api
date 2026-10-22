@@ -4,21 +4,24 @@ import com.example.trener_api.dto.*
 import com.example.trener_api.exception.NotFoundException
 import com.example.trener_api.model.WorkoutSession
 import com.example.trener_api.repository.WorkoutSessionRepository
+import com.example.trener_api.security.CurrentUser
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-// Сервис = вся логика работы с тренировками.
-// Контроллер только принимает HTTP-запрос и передаёт его сюда.
+// Вся логика работы с тренировками. Теперь каждый видит и меняет ТОЛЬКО свои тренировки
 @Service
 class WorkoutService(
-    private val repository: WorkoutSessionRepository
+    private val repository: WorkoutSessionRepository,
+    private val currentUser: CurrentUser,
 ) {
+    // Чужая тренировка для пользователя «не существует» → 404 (не выдаём, что она вообще есть)
     private fun findOr404(id: Long): WorkoutSession =
-        repository.findById(id).orElseThrow { NotFoundException("Тренировка $id не найдена") }
+        repository.findByIdAndOwner(id, currentUser.get())
+            ?: throw NotFoundException("Тренировка $id не найдена")
 
     @Transactional(readOnly = true)
     fun getAll(): List<SessionResponse> =
-        repository.findAllByOrderByWorkoutDateDesc().map { it.toResponse() }
+        repository.findAllByOwnerOrderByWorkoutDateDesc(currentUser.get()).map { it.toResponse() }
 
     @Transactional(readOnly = true)
     fun getOne(id: Long): SessionResponse =
@@ -34,6 +37,7 @@ class WorkoutService(
             feel = req.feel,
             bodyWeight = req.bodyWeight,
             note = req.note,
+            owner = currentUser.get(),
         )
         req.sets.forEach { session.sets.add(it.toEntity(session)) }
         return repository.saveAndFlush(session).toResponse()

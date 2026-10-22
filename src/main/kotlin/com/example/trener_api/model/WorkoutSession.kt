@@ -1,10 +1,10 @@
 package com.example.trener_api.model
 
 import jakarta.persistence.*
-import jakarta.validation.Valid
-import jakarta.validation.constraints.*
 import java.time.LocalDate
 
+// Правила проверки (@NotBlank, @Min…) теперь живут в DTO (SessionRequest),
+// поэтому из сущности они убраны: сущность описывает только таблицу.
 @Entity
 @Table(name = "workout_session")
 class WorkoutSession(
@@ -16,21 +16,21 @@ class WorkoutSession(
     var workoutDate: LocalDate,
 
     @Column(name = "day_name", nullable = false)
-    @field:NotBlank(message = "Название дня не может быть пустым")
     var dayName: String,
 
-    @field:Min(value = 1, message = "Самочувствие от 1 до 5")
-    @field:Max(value = 5, message = "Самочувствие от 1 до 5")
     var feel: Int? = null,
 
     @Column(name = "body_weight")
-    @field:Positive(message = "Вес тела должен быть больше 0")
     var bodyWeight: Double? = null,
 
     @Column(length = 1000)
     var note: String? = null,
 
     @OneToMany(mappedBy = "session", cascade = [CascadeType.ALL], orphanRemoval = true)
-    @field:Valid
     var sets: MutableList<SetEntry> = mutableListOf(),
+
+    // Чья это тренировка. Много тренировок → один пользователь
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    var owner: AppUser? = null,
 )
