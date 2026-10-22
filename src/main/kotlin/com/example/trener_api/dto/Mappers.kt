@@ -30,6 +30,7 @@ fun WorkoutSession.toResponse() = SessionResponse(
     dayName = dayName,
     feel = feel,
     bodyWeight = bodyWeight,
+    durationMinutes = durationMinutes,
     note = note,
     sets = sets.sortedBy { it.id }.map { it.toResponse() },
     totalVolume = sets.sumOf { (it.weight ?: 0.0) * (it.reps ?: 0) },

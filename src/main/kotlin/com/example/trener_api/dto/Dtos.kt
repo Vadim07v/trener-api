@@ -36,6 +36,10 @@ data class SessionRequest(
     @field:Positive(message = "Вес тела должен быть больше 0")
     val bodyWeight: Double? = null,
 
+    // Длительность тренировки в минутах
+    @field:Min(value = 1, message = "Длительность хотя бы 1 минута")
+    val durationMinutes: Int? = null,
+
     @field:Size(max = 1000, message = "Заметка до 1000 символов")
     val note: String? = null,
 
@@ -60,6 +64,7 @@ data class SessionResponse(
     val dayName: String,
     val feel: Int?,
     val bodyWeight: Double?,
+    val durationMinutes: Int?,
     val note: String?,
     val sets: List<SetResponse>,
     val totalVolume: Double, // тоннаж: сумма вес × повторы, в базе не хранится

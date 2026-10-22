@@ -36,6 +36,7 @@ class WorkoutService(
             dayName = req.dayName,
             feel = req.feel,
             bodyWeight = req.bodyWeight,
+            durationMinutes = req.durationMinutes,
             note = req.note,
             owner = currentUser.get(),
         )
@@ -50,6 +51,7 @@ class WorkoutService(
         session.dayName = req.dayName
         session.feel = req.feel
         session.bodyWeight = req.bodyWeight
+        session.durationMinutes = req.durationMinutes
         session.note = req.note
         session.sets.clear()
         req.sets.forEach { session.sets.add(it.toEntity(session)) }

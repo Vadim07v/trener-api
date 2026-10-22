@@ -33,4 +33,7 @@ class WorkoutSession(
     @ManyToOne
     @JoinColumn(name = "user_id")
     var owner: AppUser? = null,
+
+    @Column(name = "duration_minutes")
+    var durationMinutes: Int? = null,
 )
